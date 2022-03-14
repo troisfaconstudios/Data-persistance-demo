@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -12,16 +13,26 @@ public class MainManager : MonoBehaviour
 
     public Text ScoreText;
     public GameObject GameOverText;
+
+    public Text name;
     
     private bool m_Started = false;
     private int m_Points;
     
     private bool m_GameOver = false;
 
-    
+    class User
+    {
+        public int highScore;
+        public string playerName;
+    }
+
     // Start is called before the first frame update
     void Start()
     {
+        loadLastUser();
+     //   name.text = StartMenu.Instance.userName;
+        
         const float step = 0.6f;
         int perLine = Mathf.FloorToInt(4.0f / step);
         
@@ -70,7 +81,31 @@ public class MainManager : MonoBehaviour
 
     public void GameOver()
     {
+        SaveUser();   
         m_GameOver = true;
         GameOverText.SetActive(true);
+    }
+
+    void SaveUser()
+    {
+        User user = new User();
+        user.highScore = m_Points;
+        user.playerName = StartMenu.Instance.userName;
+
+        string json = JsonUtility.ToJson(user);
+
+        File.WriteAllText(Application.persistentDataPath + "/savefile.json", json);
+    }
+
+    void loadLastUser()
+    {
+        string path = Application.persistentDataPath + "/savefile.json";
+        if (File.Exists(path))
+        {
+            string json = File.ReadAllText(path);
+            User data = JsonUtility.FromJson<User>(json);
+
+            name.text = "Last user: " + data.playerName + " Score: " + data.highScore;
+        }
     }
 }
